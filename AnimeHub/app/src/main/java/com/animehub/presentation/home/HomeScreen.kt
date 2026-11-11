@@ -152,11 +152,11 @@ fun HomeScreen(
                             item(span = { GridItemSpan(maxLineSpan) }) {
                                 SectionTitle(if (state.query.isBlank()) "Populares" else "Resultados")
                             }
-                            items(
+                            itemsIndexed(
                                 state.items,
-                                key = { it.key },
-                                contentType = { "work" },
-                            ) { work ->
+                                key = { _, work -> work.key },
+                                contentType = { _, _ -> "work" },
+                            ) { _, work ->
                                 WorkCard(
                                     title = work.title,
                                     coverUrl = work.coverUrl,
