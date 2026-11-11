@@ -4,6 +4,9 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 data class DetectedSite(
     val name: String,
@@ -53,18 +56,23 @@ class SiteDetector(private val fetcher: PageFetcher) {
             "$origin/?s={q}", "$origin/search?q={q}", "$origin/search?keyword={q}",
             "$origin/busca?q={q}", "$origin/?search={q}",
         )
-        for (template in candidates) {
-            val links = try {
-                ScrapeHeuristics.extractCards(fetcher.document(template.replace("{q}", "a")), "probe", null)
-                    .map { it.id }.toSet()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                emptySet()
-            }
-            // Se devolve exatamente a página inicial, o site ignorou o parâmetro.
-            if (links.isNotEmpty() && links != homeLinks) return template
+        // Sonda os candidatos em paralelo para reduzir a latência da detecção.
+        val results = coroutineScope {
+            candidates.map { template ->
+                async {
+                    try {
+                        ScrapeHeuristics.extractCards(fetcher.document(template.replace("{q}", "a")), "probe", null)
+                            .map { it.id }.toSet()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        null
+                    }
+                }
+            }.awaitAll()
         }
-        return null
+        return candidates.zip(results).firstOrNull { (_, links) ->
+            links != null && links.isNotEmpty() && links != homeLinks
+        }?.first
     }
 }

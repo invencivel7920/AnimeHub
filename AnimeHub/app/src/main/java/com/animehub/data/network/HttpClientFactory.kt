@@ -1,7 +1,9 @@
 package com.animehub.data.network
 
 import okhttp3.CertificatePinner
+import okhttp3.ConnectionPool
 import okhttp3.ConnectionSpec
+import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -19,10 +21,17 @@ object HttpClientFactory {
         val builder = OkHttpClient.Builder()
             .connectionSpecs(listOf(ConnectionSpec.MODERN_TLS))
             .dns(SafeDns)
+            .dispatcher(Dispatcher().apply {
+                maxRequests = 32
+                maxRequestsPerHost = 8
+            })
+            .connectionPool(ConnectionPool(12, 5, TimeUnit.MINUTES))
             .followSslRedirects(false)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
-            .callTimeout(40, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .connectTimeout(12, TimeUnit.SECONDS)
+            .readTimeout(18, TimeUnit.SECONDS)
+            .callTimeout(35, TimeUnit.SECONDS)
+            .pingInterval(30, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 chain.proceed(
                     chain.request().newBuilder()
