@@ -21,6 +21,10 @@ class SettingsRepository(private val context: Context) {
         val autoNext = booleanPreferencesKey("auto_next")
         val secure = booleanPreferencesKey("secure_screen")
         val disclaimer = booleanPreferencesKey("disclaimer_accepted")
+        val audioLanguage = stringPreferencesKey("preferred_audio_language")
+        val subtitleLanguage = stringPreferencesKey("preferred_subtitle_language")
+        val downloadQuality = stringPreferencesKey("download_quality")
+        val downloadWifiOnly = booleanPreferencesKey("download_wifi_only")
     }
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
@@ -33,6 +37,10 @@ class SettingsRepository(private val context: Context) {
             autoPlayNext = p[Keys.autoNext] ?: defaults.autoPlayNext,
             secureScreen = p[Keys.secure] ?: defaults.secureScreen,
             disclaimerAccepted = p[Keys.disclaimer] ?: defaults.disclaimerAccepted,
+            preferredAudioLanguage = p[Keys.audioLanguage],
+            preferredSubtitleLanguage = p[Keys.subtitleLanguage],
+            downloadQuality = p[Keys.downloadQuality] ?: defaults.downloadQuality,
+            downloadWifiOnly = p[Keys.downloadWifiOnly] ?: defaults.downloadWifiOnly,
         )
     }
 
@@ -43,4 +51,20 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutoNext(v: Boolean) = context.settingsStore.edit { it[Keys.autoNext] = v }
     suspend fun setSecureScreen(v: Boolean) = context.settingsStore.edit { it[Keys.secure] = v }
     suspend fun acceptDisclaimer() = context.settingsStore.edit { it[Keys.disclaimer] = true }
+
+    suspend fun setPreferredAudioLanguage(language: String?) = context.settingsStore.edit {
+        if (language.isNullOrBlank()) it.remove(Keys.audioLanguage) else it[Keys.audioLanguage] = language
+    }
+
+    suspend fun setPreferredSubtitleLanguage(language: String?) = context.settingsStore.edit {
+        if (language.isNullOrBlank()) it.remove(Keys.subtitleLanguage) else it[Keys.subtitleLanguage] = language
+    }
+
+    suspend fun setDownloadQuality(quality: String) = context.settingsStore.edit {
+        it[Keys.downloadQuality] = quality
+    }
+
+    suspend fun setDownloadWifiOnly(v: Boolean) = context.settingsStore.edit {
+        it[Keys.downloadWifiOnly] = v
+    }
 }

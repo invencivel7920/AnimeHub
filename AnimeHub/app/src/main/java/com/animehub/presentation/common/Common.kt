@@ -88,6 +88,34 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     )
 }
 
+/** Nome amigável para um código de idioma ISO (pt, en, ja...). */
+fun languageLabel(code: String?): String {
+    if (code.isNullOrBlank()) return "Automático"
+    return when (code.lowercase().substringBefore('-')) {
+        "pt" -> "Português"
+        "en" -> "Inglês"
+        "es" -> "Espanhol"
+        "ja" -> "Japonês"
+        "fr" -> "Francês"
+        "de" -> "Alemão"
+        "it" -> "Italiano"
+        "ru" -> "Russo"
+        "ko" -> "Coreano"
+        "zh" -> "Chinês"
+        "ar" -> "Árabe"
+        else -> code.uppercase()
+    }
+}
+
+/** Idiomas oferecidos nos ajustes e nos seletores do player. */
+val commonLanguages: List<String> = listOf("pt", "en", "es", "ja", "fr", "de", "it", "ru", "ko", "zh")
+
+/** Compara códigos como "pt" e "pt-BR" pela língua base. */
+fun languageMatches(preferred: String?, option: String?): Boolean {
+    if (preferred.isNullOrBlank() || option.isNullOrBlank()) return false
+    return preferred.substringBefore('-').equals(option.substringBefore('-'), ignoreCase = true)
+}
+
 /** Efeito de brilho animado para áreas em carregamento. A animação só redesenha, não recompõe. */
 @Composable
 fun Modifier.shimmer(): Modifier {

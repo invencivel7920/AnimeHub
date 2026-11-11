@@ -42,6 +42,10 @@ data class PlayerState(
     val selected: VideoSource? = null,
     val startPositionMs: Long = 0L,
     val error: String? = null,
+    val preferredAudioLanguage: String? = null,
+    val preferredSubtitleLanguage: String? = null,
+    val playbackSpeed: Float = 1f,
+    val downloadWifiOnly: Boolean = false,
 ) {
     val index: Int get() = episodes.indexOfFirst { it.id == episode?.id }
     val hasPrev: Boolean get() = index > 0
@@ -67,7 +71,12 @@ class PlayerViewModel(
             settings = settingsRepo.settings.first()
             val names = repo.sourceNames().first()
             _state.update {
-                it.copy(sources = args.refs.map { r -> SourceChoice(r.sourceId, names[r.sourceId] ?: r.sourceId) })
+                it.copy(
+                    sources = args.refs.map { r -> SourceChoice(r.sourceId, names[r.sourceId] ?: r.sourceId) },
+                    preferredAudioLanguage = settings.preferredAudioLanguage,
+                    preferredSubtitleLanguage = settings.preferredSubtitleLanguage,
+                    downloadWifiOnly = settings.downloadWifiOnly,
+                )
             }
             guarded { openSource(args.startSourceId, args.startEpisodeId, args.startNumber, null) }
         }
@@ -144,6 +153,20 @@ class PlayerViewModel(
 
     fun select(video: VideoSource, currentPositionMs: Long) =
         _state.update { it.copy(selected = video, startPositionMs = currentPositionMs, error = null) }
+
+    fun setSubtitleLanguage(language: String?) {
+        _state.update { it.copy(preferredSubtitleLanguage = language) }
+        viewModelScope.launch { settingsRepo.setPreferredSubtitleLanguage(language) }
+    }
+
+    fun setAudioLanguage(language: String?) {
+        _state.update { it.copy(preferredAudioLanguage = language) }
+        viewModelScope.launch { settingsRepo.setPreferredAudioLanguage(language) }
+    }
+
+    fun setPlaybackSpeed(speed: Float) {
+        _state.update { it.copy(playbackSpeed = speed) }
+    }
 
     fun onEnded() {
         if (settings.autoPlayNext) next()

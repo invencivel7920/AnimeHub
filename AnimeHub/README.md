@@ -15,8 +15,15 @@ App Android (Kotlin + Jetpack Compose + Media3 + Room) que reúne sites escolhid
   "Assistir em" lista cada fonte com a contagem de episódios, e você escolhe. O app também busca a obra
   nas outras fontes ativas automaticamente (desligável em Ajustes). No player dá para trocar de fonte e de
   qualidade sem perder o ponto do episódio; se um vídeo falha, o app tenta a próxima opção.
+- **Baixar obras**: na tela da obra, o botão **Baixar obra** abre uma folha para escolher episódios (todos ou
+  alguns), qualidade (melhor/1080p/720p/480p/360p) e idioma das legendas. Os arquivos vão para a pasta
+  Downloads/AnimeHub do aparelho. Só links diretos HTTPS (MP4/MKV/WebM) são baixados; HLS/DASH são avisados e ignorados.
+  No player também há o download do episódio atual, respeitando a opção de baixar apenas no Wi-Fi definida em Ajustes.
+- **Idiomas e qualidade**: o player mostra as faixas de áudio detectadas, as legendas disponíveis, a qualidade
+  de cada vídeo e a velocidade de reprodução. As preferências de áudio/legenda e a qualidade dos downloads
+  ficam salvas em Ajustes e são aplicadas automaticamente.
 - **Ajustes**: tema, cores dinâmicas, busca em outras fontes, HLS preferido, próximo episódio automático,
-  bloqueio de capturas de tela.
+  idiomas preferidos, qualidade e Wi-Fi dos downloads, bloqueio de capturas de tela.
 
 ## Segurança
 - Somente HTTPS (TLS 1.2+); `network_security_config` sem tráfego em texto puro e só CAs do sistema.
@@ -39,10 +46,11 @@ o app avisa o motivo. Use "Editar" para ajustar seletores quando a detecção au
 
 ## Estrutura
 ```
-domain/        modelos, TitleMatcher (agrupa a mesma obra), contratos
+domain/        modelos, TitleMatcher (agrupa a mesma obra), DownloadPlanner, contratos
 data/local     Room: sites, favoritos por obra, progresso
 data/network   HttpClientFactory, UrlValidator/SafeDns
 data/scraper   PageFetcher, ScrapeHeuristics, SiteDetector, GenericWebSource, DemoSource
+data/download  DownloadManager (downloads diretos HTTPS)
 data/settings  DataStore
 presentation/  home, details, player, library, sites, settings
 ```
