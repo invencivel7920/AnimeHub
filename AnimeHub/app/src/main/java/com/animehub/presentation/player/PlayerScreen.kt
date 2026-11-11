@@ -284,12 +284,12 @@ fun PlayerScreen(vm: PlayerViewModel, httpClient: OkHttpClient, onBack: () -> Un
             .filter { it.language.isNotBlank() && !it.language.equals("und", ignoreCase = true) }
             .distinctBy { it.language }
     }
-    val audioAvailable = state.preferredAudioLanguage?.let { pref ->
-        audioLanguages.any { languageMatches(pref, it) }
-    } == true
-    val subtitleAvailable = state.preferredSubtitleLanguage?.let { pref ->
-        subtitleOptions.any { languageMatches(pref, it.language) }
-    } == true
+    val audioAvailable = remember(state.preferredAudioLanguage, audioLanguages) {
+        state.preferredAudioLanguage?.let { pref -> audioLanguages.any { languageMatches(pref, it) } } == true
+    }
+    val subtitleAvailable = remember(state.preferredSubtitleLanguage, subtitleOptions) {
+        state.preferredSubtitleLanguage?.let { pref -> subtitleOptions.any { languageMatches(pref, it.language) } } == true
+    }
 
     Scaffold(
         topBar = {
@@ -434,7 +434,9 @@ fun PlayerScreen(vm: PlayerViewModel, httpClient: OkHttpClient, onBack: () -> Un
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         val video = state.selected
-                        val canDownload = video != null && DownloadPlanner.isDirectFile(video.url)
+                        val canDownload = remember(state.selected) {
+                            state.selected != null && DownloadPlanner.isDirectFile(state.selected!!.url)
+                        }
                         video?.let {
                             Text(
                                 "Qualidade selecionada: ${it.quality.ifBlank { "Automática" }}",
